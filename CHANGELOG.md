@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0 (2026-03-02)
+
+
+### Features
+
+* Initial setup ([fa40f01](https://github.com/CoreySpohn/hwostyle/commit/fa40f01a6dc3f3e4d9011ade329011d5f212b852))
+
 ## 0.1.0 (Unreleased)
 
 ### Features
