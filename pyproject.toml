@@ -17,7 +17,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Astronomy",
     "Topic :: Scientific/Engineering :: Visualization",
 ]
-dependencies = ["matplotlib>=3.8", "cycler"]
+dependencies = ["matplotlib>=3.8", "cycler", "tol-colors"]
 
 [project.optional-dependencies]
 dev = ["pre-commit"]
