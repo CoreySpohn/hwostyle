@@ -15,7 +15,6 @@ SHARED_RC = {
     "legend.fontsize": 10,
     "figure.titlesize": 16,
     "savefig.dpi": 300,
-    "savefig.bbox": "tight",
 }
 
 SHARED_CMAPS = {
