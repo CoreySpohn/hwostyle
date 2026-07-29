@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/HabitableWorldsObservatory/hwostyle/compare/v1.1.0...v1.2.0) (2026-07-29)
+
+
+### Features
+
+* Updating readout and intensity colormaps ([fbc1cb2](https://github.com/HabitableWorldsObservatory/hwostyle/commit/fbc1cb275075f72886fe1ff75dd78440f54c58c4))
+
 ## [1.1.0](https://github.com/CoreySpohn/hwostyle/compare/v1.0.0...v1.1.0) (2026-04-21)
 
 
