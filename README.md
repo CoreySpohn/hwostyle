@@ -10,7 +10,7 @@ pip install hwostyle
 
 For development:
 ```bash
-git clone https://github.com/CoreySpohn/hwostyle.git
+git clone https://github.com/HabitableWorldsObservatory/hwostyle.git
 cd hwostyle
 pip install -e ".[dev,test]"
 ```

@@ -36,7 +36,7 @@ master_doc = "index"
 html_title = "hwostyle"
 
 html_theme_options = {
-    "repository_url": "https://github.com/CoreySpohn/hwostyle",
+    "repository_url": "https://github.com/HabitableWorldsObservatory/hwostyle",
     "repository_branch": "main",
     "use_repository_button": True,
     "show_toc_level": 2,
