@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/HabitableWorldsObservatory/hwostyle/compare/v1.2.0...v1.3.0) (2026-08-11)
+
+
+### Features
+
+* **core:** add current_mode() and save_defaults() introspection ([3f624ee](https://github.com/HabitableWorldsObservatory/hwostyle/commit/3f624ee700b72f7fbab21363bedd731dad6db324))
+
 ## [1.2.0](https://github.com/HabitableWorldsObservatory/hwostyle/compare/v1.1.0...v1.2.0) (2026-07-29)
 
 
