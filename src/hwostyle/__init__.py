@@ -15,7 +15,7 @@ Usage::
 """
 
 from . import colors, core
-from .core import barbie, dark, light, paper, use
+from .core import barbie, current_mode, dark, light, paper, save_defaults, use
 
 try:
     from ._version import __version__
@@ -34,9 +34,11 @@ __all__ = [
     "barbie",
     "cmaps",
     "colors",
+    "current_mode",
     "dark",
     "light",
     "palette",
     "paper",
+    "save_defaults",
     "use",
 ]

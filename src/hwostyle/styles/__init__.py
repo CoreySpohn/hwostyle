@@ -17,4 +17,33 @@ MODE_CMAPS = {
     "barbie": {**SHARED_CMAPS, **barbie.CMAPS},
 }
 
-__all__ = ["MODE_CMAPS", "MODE_RC", "SHARED_RC"]
+# Per-mode savefig policy as plain data. Downstream save helpers fetch this
+# at call time; hwostyle itself never saves anything.
+SAVE_DEFAULTS = {
+    "dark": {
+        "dpi": 300,
+        "facecolor": "black",
+        "transparent": False,
+        "bbox_inches": "tight",
+    },
+    "light": {
+        "dpi": 300,
+        "facecolor": "white",
+        "transparent": False,
+        "bbox_inches": "tight",
+    },
+    "paper": {
+        "dpi": 300,
+        "facecolor": "white",
+        "transparent": False,
+        "bbox_inches": "tight",
+    },
+    "barbie": {
+        "dpi": 300,
+        "facecolor": "white",
+        "transparent": False,
+        "bbox_inches": "tight",
+    },
+}
+
+__all__ = ["MODE_CMAPS", "MODE_RC", "SAVE_DEFAULTS", "SHARED_RC"]

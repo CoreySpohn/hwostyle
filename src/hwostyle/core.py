@@ -10,11 +10,12 @@ from cycler import cycler
 
 from .colormaps import Colormaps
 from .palettes import Palette
-from .styles import MODE_RC, SHARED_RC
+from .styles import MODE_RC, SAVE_DEFAULTS, SHARED_RC
 
 # Global state
 _current_mode = "dark"
 _current_family = None
+_activated = False
 palette = Palette("dark")
 cmaps = Colormaps("dark")
 
@@ -32,7 +33,7 @@ def use(mode, palette_family=None):
     Raises:
         ValueError: If mode or palette family is invalid.
     """
-    global _current_mode, _current_family, palette, cmaps
+    global _current_mode, _current_family, _activated, palette, cmaps
 
     if mode not in MODE_RC:
         msg = f"Mode must be 'dark', 'light', or 'barbie', got '{mode}'"
@@ -40,6 +41,7 @@ def use(mode, palette_family=None):
 
     _current_mode = mode
     _current_family = palette_family
+    _activated = True
     palette = Palette(mode, family=palette_family)
     cmaps = Colormaps(mode)
 
@@ -83,3 +85,30 @@ def paper(palette_family=None):
     use("paper", palette_family)
     yield
     use(prev_mode, prev_family)
+
+
+def current_mode():
+    """Return the active style mode, or None if use() has never been called.
+
+    The module initializes palette/cmaps objects in dark mode for attribute
+    access, but no mode is considered active until use() runs.
+    """
+    return _current_mode if _activated else None
+
+
+def save_defaults(mode=None):
+    """Savefig policy for a mode as a plain dict.
+
+    Args:
+        mode: Mode name. Defaults to the active mode, or "light" when no
+            mode has been activated.
+
+    Returns:
+        Dict with keys dpi, facecolor, transparent, bbox_inches. A copy;
+        mutating it does not alter the policy.
+    """
+    m = mode if mode is not None else (current_mode() or "light")
+    if m not in SAVE_DEFAULTS:
+        msg = f"Unknown mode '{m}'; expected one of {sorted(SAVE_DEFAULTS)}"
+        raise ValueError(msg)
+    return dict(SAVE_DEFAULTS[m])
