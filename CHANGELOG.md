@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/HabitableWorldsObservatory/hwostyle/compare/v1.3.0...v1.4.0) (2026-08-12)
+
+
+### Features
+
+* **style:** brand roles and the opd semantic colormap key ([4e7a70f](https://github.com/HabitableWorldsObservatory/hwostyle/commit/4e7a70fdaa82361a64ce516b634550d70b048f5e))
+
 ## [1.3.0](https://github.com/HabitableWorldsObservatory/hwostyle/compare/v1.2.0...v1.3.0) (2026-08-11)
 
 
