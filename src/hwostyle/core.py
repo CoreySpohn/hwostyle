@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from cycler import cycler
 
 from .colormaps import Colormaps
-from .palettes import Palette
+from .palettes import Palette, Roles
 from .styles import MODE_RC, SAVE_DEFAULTS, SHARED_RC
 
 # Global state
@@ -18,6 +18,7 @@ _current_family = None
 _activated = False
 palette = Palette("dark")
 cmaps = Colormaps("dark")
+roles = Roles("dark")
 
 
 def use(mode, palette_family=None):
@@ -33,7 +34,7 @@ def use(mode, palette_family=None):
     Raises:
         ValueError: If mode or palette family is invalid.
     """
-    global _current_mode, _current_family, _activated, palette, cmaps
+    global _current_mode, _current_family, _activated, palette, cmaps, roles
 
     if mode not in MODE_RC:
         msg = f"Mode must be 'dark', 'light', or 'barbie', got '{mode}'"
@@ -44,6 +45,7 @@ def use(mode, palette_family=None):
     _activated = True
     palette = Palette(mode, family=palette_family)
     cmaps = Colormaps(mode)
+    roles = Roles(mode, family=palette_family)
 
     rc = {**SHARED_RC}
     rc.update(MODE_RC[mode])

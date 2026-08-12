@@ -9,6 +9,7 @@ Usage::
 
     hwostyle.palette.o2
     hwostyle.cmaps.intensity
+    hwostyle.roles.planet
 
     # Color utilities
     from hwostyle.colors import wavelength_to_rgb, contrast_ratio
@@ -24,8 +25,8 @@ except ModuleNotFoundError:
 
 
 def __getattr__(name):
-    """Forward ``palette`` and ``cmaps`` to the live core state."""
-    if name in ("palette", "cmaps"):
+    """Forward ``palette``, ``cmaps``, and ``roles`` to the live core state."""
+    if name in ("palette", "cmaps", "roles"):
         return getattr(core, name)
     raise AttributeError(f"module 'hwostyle' has no attribute {name!r}")
 
@@ -39,6 +40,7 @@ __all__ = [
     "light",
     "palette",
     "paper",
+    "roles",
     "save_defaults",
     "use",
 ]

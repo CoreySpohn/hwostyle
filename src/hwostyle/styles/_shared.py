@@ -26,6 +26,12 @@ SHARED_CMAPS = {
     "readouts": "magma",
     "high_dynamic_range": "inferno",
     "residual": "RdBu_r",
+    # Signed wavefront error. A separate semantic key from ``residual``
+    # (ratio / residual semantics) and from ``phase`` (the cyclic map, for
+    # winding phase): an OPD map is signed and centered on zero, so it wants
+    # a white-centered diverging map in every mode. Same underlying map as
+    # ``residual`` today; the split is what lets either be retuned alone.
+    "opd": "RdBu_r",
     "phase": "twilight",
     "probability": "YlOrRd_r",
     "mask": ["#FFFFFF", "#0097A7"],

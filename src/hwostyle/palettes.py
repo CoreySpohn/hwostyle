@@ -3,6 +3,10 @@
 Palettes are organized by family (cyberpunk, spectral, biosignature, barbie)
 and by mode (dark, light). Each palette is a dict mapping color names to hex
 values.
+
+Brand roles live here too (:class:`Roles`): they are palette color names
+under a semantic alias, so a figure can ask for ``planet`` rather than
+``cyan`` and get one pinned color per entity across every figure.
 """
 
 from cycler import cycler
@@ -226,3 +230,110 @@ class Palette:
             f"Palette(mode='{self._mode}', family='{self._family}', "
             f"colors={self.as_list})"
         )
+
+
+# =============================================================================
+# Brand roles -- named plot entities as data
+# =============================================================================
+
+# Role -> palette color name. Roles are stored as NAMES rather than hex so
+# mode tuning is automatic: ``planet`` is the cyberpunk ``cyan`` in both
+# modes and picks up the muted light-mode hex without a second table.
+#
+# Two roles deliberately resolve to the same color in this first pass
+# (``planet`` and ``measured`` are both cyan). Perceptual-distance tuning and
+# collision cleanup are a later pass; this is the data plumbing.
+ROLE_COLOR_NAMES = {
+    "star": "yellow",
+    "planet": "cyan",
+    "disk": "purple",
+    "measured": "cyan",
+    "data": "cyan",
+    "model": "pink",
+    "predicted": "pink",
+    "reference": "green",
+    "envelope": "purple",
+    "alert": "red",
+    "highlight": "pink",
+}
+
+# Canonical cyberpunk order. A family without the named color (spectral,
+# biosignature, barbie, tol) uses the slot at this index, so two roles mapped
+# to one name keep sharing a color in every family, and no role invents hex.
+_ROLE_SLOT_ORDER = ["cyan", "pink", "yellow", "green", "red", "purple"]
+
+
+class Roles:
+    """Mode-aware registry of brand roles.
+
+    Access colors by what the plotted entity is rather than by color name.
+    The resolved value depends on the active mode and palette family, which
+    is what keeps cause and effect sharing a color from panel to panel.
+
+    Roles:
+        star, planet, disk, measured (alias data), model (alias predicted),
+        reference, envelope, alert, highlight.
+    """
+
+    def __init__(self, mode="dark", family=None):
+        """Initialize roles for the given mode and palette family.
+
+        Args:
+            mode: One of "dark", "light", "paper", or "barbie".
+            family: Palette family name, or None for the mode default.
+        """
+        self._mode = mode
+        self._palette = Palette(mode, family=family)
+
+    @property
+    def mode(self):
+        """Current mode name."""
+        return self._mode
+
+    @property
+    def family(self):
+        """Palette family the roles resolve through."""
+        return self._palette.family
+
+    @property
+    def names(self):
+        """Role names, in registry order."""
+        return list(ROLE_COLOR_NAMES.keys())
+
+    @property
+    def as_dict(self):
+        """All roles as a name -> hex dict."""
+        return {name: self._resolve(name) for name in ROLE_COLOR_NAMES}
+
+    def _resolve(self, role):
+        """Resolve one role name to a hex color for the active palette."""
+        color_name = ROLE_COLOR_NAMES[role]
+        colors = self._palette.as_dict
+        if color_name in colors:
+            return colors[color_name]
+        slot = _ROLE_SLOT_ORDER.index(color_name)
+        return self._palette[slot % len(self._palette)]
+
+    def __getattr__(self, name):
+        """Access a role color by name (e.g. roles.planet)."""
+        if name.startswith("_"):
+            raise AttributeError(name)
+        if name in ROLE_COLOR_NAMES:
+            return self._resolve(name)
+        msg = f"No role '{name}'. Available: {list(ROLE_COLOR_NAMES.keys())}"
+        raise AttributeError(msg)
+
+    def __getitem__(self, role):
+        """Access a role color by name."""
+        if role not in ROLE_COLOR_NAMES:
+            msg = f"No role '{role}'. Available: {list(ROLE_COLOR_NAMES.keys())}"
+            raise KeyError(msg)
+        return self._resolve(role)
+
+    def __contains__(self, role):
+        """Whether a name is a known brand role."""
+        return role in ROLE_COLOR_NAMES
+
+    def __repr__(self):
+        """String representation."""
+        return f"Roles(mode='{self._mode}', family='{self.family}')"

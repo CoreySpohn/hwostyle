@@ -202,3 +202,101 @@ class TestModes:
         assert hwostyle.palette.cyan == CYBERPUNK_DARK["cyan"]
         hwostyle.use("light")
         assert hwostyle.palette.cyan == CYBERPUNK_LIGHT["cyan"]
+
+
+class TestOpdColormap:
+    """Tests for the opd semantic colormap key."""
+
+    def test_opd_resolves_in_every_mode(self):
+        """The opd key resolves to a usable colormap in every mode."""
+        for mode in ("dark", "light", "paper", "barbie"):
+            hwostyle.use(mode)
+            assert plt.get_cmap(hwostyle.cmaps.opd) is not None
+
+    def test_opd_is_centered_on_a_light_neutral(self):
+        """Zero OPD reads as a light neutral, not as an extreme."""
+        for mode in ("dark", "light", "paper", "barbie"):
+            hwostyle.use(mode)
+            cmap = plt.get_cmap(hwostyle.cmaps.opd)
+            mid = sum(cmap(0.5)[:3])
+            assert mid > sum(cmap(0.0)[:3])
+            assert mid > sum(cmap(1.0)[:3])
+
+    def test_opd_is_a_distinct_key_from_phase(self):
+        """The opd key is its own semantic key: phase stays the cyclic map."""
+        hwostyle.use("dark")
+        assert hwostyle.cmaps.opd != hwostyle.cmaps.phase
+
+
+class TestRoles:
+    """Tests for the brand role registry."""
+
+    def test_roles_resolve_through_palette_names(self):
+        """A role resolves to the palette color its name points at."""
+        hwostyle.use("dark")
+        assert hwostyle.roles.planet == CYBERPUNK_DARK["cyan"]
+        assert hwostyle.roles.star == CYBERPUNK_DARK["yellow"]
+        assert hwostyle.roles.alert == CYBERPUNK_DARK["red"]
+
+    def test_mode_tuning_is_automatic(self):
+        """The same role picks up the light-mode hex without a second table."""
+        hwostyle.use("dark")
+        assert hwostyle.roles.planet == CYBERPUNK_DARK["cyan"]
+        hwostyle.use("light")
+        assert hwostyle.roles.planet == CYBERPUNK_LIGHT["cyan"]
+
+    def test_roles_update_on_mode_switch(self):
+        """The global roles object tracks the active mode."""
+        hwostyle.use("dark")
+        assert hwostyle.roles.mode == "dark"
+        hwostyle.use("light")
+        assert hwostyle.roles.mode == "light"
+
+    def test_aliases_share_a_color(self):
+        """The data role aliases measured, and predicted aliases model."""
+        hwostyle.use("dark")
+        assert hwostyle.roles.data == hwostyle.roles.measured
+        assert hwostyle.roles.predicted == hwostyle.roles.model
+
+    def test_shared_name_shares_a_color_in_every_family(self):
+        """Roles mapped to one palette name stay one color, families included."""
+        for family in ("cyberpunk", "spectral", "biosignature"):
+            hwostyle.use("dark", palette_family=family)
+            assert hwostyle.roles.planet == hwostyle.roles.measured
+
+    def test_non_cyberpunk_families_resolve_without_new_hex(self):
+        """A family lacking cyberpunk names falls back to palette slots."""
+        for family in ("spectral", "biosignature"):
+            hwostyle.use("dark", palette_family=family)
+            colors = set(hwostyle.palette.as_list)
+            for name in hwostyle.roles.names:
+                assert hwostyle.roles[name] in colors
+
+    def test_barbie_mode_resolves_every_role(self):
+        """Barbie mode has five colors and still resolves all roles."""
+        hwostyle.use("barbie")
+        colors = set(hwostyle.palette.as_list)
+        for name in hwostyle.roles.names:
+            assert hwostyle.roles[name] in colors
+
+    def test_as_dict_covers_every_role(self):
+        """as_dict returns one entry per registered role."""
+        hwostyle.use("dark")
+        d = hwostyle.roles.as_dict
+        assert set(d) == set(hwostyle.roles.names)
+        assert all(v.startswith("#") for v in d.values())
+
+    def test_unknown_role_raises_with_the_vocabulary(self):
+        """An unknown role names the available roles."""
+        hwostyle.use("dark")
+        try:
+            _ = hwostyle.roles.spaceship
+            raise AssertionError("Should have raised AttributeError")
+        except AttributeError as err:
+            assert "planet" in str(err)
+
+    def test_contains_reports_membership(self):
+        """The registry answers membership questions."""
+        hwostyle.use("dark")
+        assert "planet" in hwostyle.roles
+        assert "spaceship" not in hwostyle.roles
