@@ -339,3 +339,89 @@ def _hex_to_lab(hex_color):
     a_star = 500.0 * (f(x / xn) - f(y / yn))
     b_star = 200.0 * (f(y / yn) - f(z / zn))
     return (l_star, a_star, b_star)
+
+
+_LMS_FROM_LINEAR_RGB = np.array(
+    [
+        [0.31399022, 0.63951294, 0.04649755],
+        [0.15537241, 0.75789446, 0.08670142],
+        [0.01775239, 0.10944209, 0.87256922],
+    ]
+)
+_LINEAR_RGB_FROM_LMS = np.linalg.inv(_LMS_FROM_LINEAR_RGB)
+
+# Brettel-Vienot-Mollon dichromat projections, in LMS.
+_CVD_MATRICES = {
+    "protanopia": np.array(
+        [[0.0, 1.05118294, -0.05116099], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+    ),
+    "deuteranopia": np.array(
+        [[1.0, 0.0, 0.0], [0.9513092, 0.0, 0.04866992], [0.0, 0.0, 1.0]]
+    ),
+    "tritanopia": np.array(
+        [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [-0.86744736, 1.86727089, 0.0]]
+    ),
+}
+
+
+def _srgb_to_linear(c):
+    """Undo the sRGB transfer function."""
+    c = np.asarray(c, float)
+    return np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
+
+
+def _linear_to_srgb(c):
+    """Apply the sRGB transfer function."""
+    c = np.clip(np.asarray(c, float), 0.0, 1.0)
+    return np.where(c <= 0.0031308, c * 12.92, 1.055 * c ** (1 / 2.4) - 0.055)
+
+
+def simulate_cvd(hex_color, kind, severity=1.0):
+    """Simulate how a color appears to a viewer with a color vision deficiency.
+
+    Between five and ten percent of readers have some deficiency, so a figure
+    whose meaning rests on hue alone fails for roughly one viewer in a lecture
+    room of twenty. That is checkable rather than a matter of taste, which is
+    the point of having this function.
+
+    Args:
+        hex_color: Color as ``"#rrggbb"``.
+        kind: One of ``"protanopia"``, ``"deuteranopia"``, ``"tritanopia"``.
+        severity: 0 (unaffected) to 1 (full dichromacy). Intermediate values
+            interpolate, standing in for the anomalous trichromacies.
+
+    Returns:
+        The simulated color as ``"#rrggbb"``.
+
+    Raises:
+        ValueError: If ``kind`` is not one of the three deficiencies.
+    """
+    if kind not in _CVD_MATRICES:
+        raise ValueError(
+            f"unknown deficiency {kind!r}: use one of {sorted(_CVD_MATRICES)}"
+        )
+    rgb = np.array(hex_to_rgb(hex_color), float)
+    lms = _LMS_FROM_LINEAR_RGB @ _srgb_to_linear(rgb)
+    simulated = _LINEAR_RGB_FROM_LMS @ (_CVD_MATRICES[kind] @ lms)
+    out = _linear_to_srgb(simulated)
+    blended = (1.0 - severity) * rgb + severity * out
+    return rgb_to_hex(tuple(blended))
+
+
+def cvd_safety_report(hex_colors, names=None, severity=1.0):
+    """Minimum perceptual separation of a palette under each deficiency.
+
+    Args:
+        hex_colors: The palette to check.
+        names: Optional names, for readable output.
+        severity: Passed through to `simulate_cvd`.
+
+    Returns:
+        Dict keyed by ``"normal"`` and each deficiency, each holding the
+        minimum pairwise perceptual distance (a float) over the palette.
+    """
+    report = {"normal": min_perceptual_distance(list(hex_colors))[0]}
+    for kind in sorted(_CVD_MATRICES):
+        shifted = [simulate_cvd(c, kind, severity) for c in hex_colors]
+        report[kind] = min_perceptual_distance(shifted)[0]
+    return report
