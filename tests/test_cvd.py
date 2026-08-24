@@ -2,6 +2,7 @@
 
 import pytest
 
+from hwostyle import colors, palettes
 from hwostyle.colors import cvd_safety_report, perceptual_distance, simulate_cvd
 
 
@@ -54,3 +55,42 @@ def test_a_deliberately_safe_palette_scores_better_than_a_red_green_one():
     assert min(cvd_safety_report(blue_yellow).values()) > min(
         cvd_safety_report(red_green).values()
     )
+
+
+def test_unsafe_pairs_names_the_pair_not_just_a_minimum():
+    """A minimum distance does not tell you which pair to retire; this does."""
+    rows = colors.unsafe_pairs(["#000000", "#ffffff"], ["black", "white"])
+    assert rows == []
+    rows = colors.unsafe_pairs(["#2E7D32", "#D32F2F"], ["green", "red"])
+    assert any(r["kind"] == "grayscale" for r in rows)
+
+
+def test_light_palette_green_red_is_retired_for_paired_use():
+    """The paper palette's worst pair, pinned so a repalette cannot hide it.
+
+    green and red differ by 0.006 in relative luminance, so they are one gray
+    in print, and they are also the worst protanopia pair. Any two-series
+    comparison reaching for both is the commonest way to lose a figure to a
+    photocopier. The rule is a redundant second channel, not a new palette.
+    """
+    light = palettes.CYBERPUNK_LIGHT
+    rows = colors.unsafe_pairs(
+        [light["green"], light["red"]], ["green", "red"], contrast_floor=3.0
+    )
+    gray = [r for r in rows if r["kind"] == "grayscale"]
+    assert gray, "green/red must still register as grayscale-colliding"
+    assert gray[0]["value"] < 1.1
+
+
+def test_model_and_reference_roles_collide_in_the_light_palette():
+    """Model (pink) against reference (green) is the commonest comparison made.
+
+    Recorded rather than fixed: retiring the collision means a second channel
+    on every model-vs-reference figure, not a role remap, because remapping
+    would break every figure already built against these roles.
+    """
+    light = palettes.CYBERPUNK_LIGHT
+    pink = light[palettes.ROLE_COLOR_NAMES["model"]]
+    green = light[palettes.ROLE_COLOR_NAMES["reference"]]
+    rows = colors.unsafe_pairs([pink, green], ["model", "reference"])
+    assert any(r["kind"] == "grayscale" for r in rows)

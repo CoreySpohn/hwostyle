@@ -408,6 +408,67 @@ def simulate_cvd(hex_color, kind, severity=1.0):
     return rgb_to_hex(tuple(blended))
 
 
+def unsafe_pairs(
+    hex_colors, names=None, *, severity=1.0, cvd_floor=12.0, contrast_floor=3.0
+):
+    """Name the pairs of a palette a reader may not be able to tell apart.
+
+    `cvd_safety_report` answers "how bad is the worst pair" and stops there,
+    which is the wrong shape for a decision: a palette is not repaletted, a
+    PAIR is retired, and to retire one you have to know which it is.
+
+    Two independent failures are checked, because they are not the same
+    failure and a palette can pass one while failing the other. A pair can
+    collapse under a color vision deficiency while staying distinct in print,
+    and a pair can be vivid on screen while printing as one gray.
+
+    Args:
+        hex_colors: The palette to check.
+        names: Optional names, same length, used in the report.
+        severity: Passed through to `simulate_cvd`.
+        cvd_floor: Perceptual distance below which a pair counts as
+            colliding under a deficiency.
+        contrast_floor: WCAG contrast ratio below which a pair counts as
+            indistinguishable in grayscale. The default is WCAG 2.0's floor
+            for non-text graphical objects. It is a strict standard: a
+            six-hue palette picked for screen will fail most of its pairs,
+            which is the finding rather than a fault in the check.
+
+    Returns:
+        List of dicts, worst first, each with ``pair`` (the two names or
+        hexes), ``kind`` (``"cvd:<deficiency>"`` or ``"grayscale"``) and
+        ``value`` (the measured distance or contrast ratio).
+    """
+    hex_colors = list(hex_colors)
+    labels = list(names) if names is not None else list(hex_colors)
+    found = []
+    for i in range(len(hex_colors)):
+        for j in range(i + 1, len(hex_colors)):
+            a, b = hex_colors[i], hex_colors[j]
+            ratio = contrast_ratio(a, b)
+            if ratio < contrast_floor:
+                found.append(
+                    {
+                        "pair": (labels[i], labels[j]),
+                        "kind": "grayscale",
+                        "value": ratio,
+                    }
+                )
+            for kind in sorted(_CVD_MATRICES):
+                dist = min_perceptual_distance(
+                    [simulate_cvd(a, kind, severity), simulate_cvd(b, kind, severity)]
+                )[0]
+                if dist < cvd_floor:
+                    found.append(
+                        {
+                            "pair": (labels[i], labels[j]),
+                            "kind": f"cvd:{kind}",
+                            "value": dist,
+                        }
+                    )
+    return sorted(found, key=lambda r: r["value"])
+
+
 def cvd_safety_report(hex_colors, names=None, severity=1.0):
     """Minimum perceptual separation of a palette under each deficiency.
 
