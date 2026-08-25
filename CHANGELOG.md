@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/HabitableWorldsObservatory/hwostyle/compare/v1.4.0...v1.5.0) (2026-08-24)
+
+
+### Features
+
+* **colors:** add unsafe_pairs to name colliding palette pairs ([907a9c0](https://github.com/HabitableWorldsObservatory/hwostyle/commit/907a9c0335fd101168004e2fdbe73090c0c19ae1))
+* **colors:** simulate color vision deficiency so palette safety is measurable ([6aab2a2](https://github.com/HabitableWorldsObservatory/hwostyle/commit/6aab2a291ebcb085842edd1e8d86291e5bec85a3))
+
 ## [1.4.0](https://github.com/HabitableWorldsObservatory/hwostyle/compare/v1.3.0...v1.4.0) (2026-08-12)
 
 
